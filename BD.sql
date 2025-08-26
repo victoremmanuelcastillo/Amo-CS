@@ -1,0 +1,1 @@
+create table TableName (Column1 DataType, Column2 DataType);

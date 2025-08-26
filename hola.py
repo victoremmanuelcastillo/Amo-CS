@@ -1,2 +1,0 @@
-#holagit
-print("hola")
