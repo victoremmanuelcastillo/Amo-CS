@@ -1,0 +1,23 @@
+{
+  "name": "proyectonode",
+  "version": "1.0.0",
+  "description": "sistema de test",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/victoremmanuelcastillo/Amo-CS.git"
+  },
+  "keywords": [
+    "node"
+  ],
+  "author": "victoremmanuelcastillo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/victoremmanuelcastillo/Amo-CS/issues"
+  },
+  "homepage": "https://github.com/victoremmanuelcastillo/Amo-CS#readme"
+}
