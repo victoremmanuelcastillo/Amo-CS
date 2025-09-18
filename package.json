@@ -19,5 +19,11 @@
   "bugs": {
     "url": "https://github.com/victoremmanuelcastillo/Amo-CS/issues"
   },
-  "homepage": "https://github.com/victoremmanuelcastillo/Amo-CS#readme"
+  "homepage": "https://github.com/victoremmanuelcastillo/Amo-CS#readme",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.5.0"
+  }
 }
