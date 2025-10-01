@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #login {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        #login h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        #login input {
+            width: 300px;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: border 0.3s;
+        }
+
+        #login input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        #login button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #login button:hover {
+            transform: scale(1.05);
+        }
+
+        #chat {
+            width: 95%;
+            max-width: 1400px;
+            height: 90vh;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 { font-size: 24px; }
+        .header span {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+        }
+
+        .chat-container {
+            display: flex;
+            gap: 0;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .chat-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .chat-box:last-child { border-right: none; }
+
+        .chat-box h3 {
+            background: #f5f5f5;
+            padding: 15px 20px;
+            color: #667eea;
+            font-size: 18px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .mensajes {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .mensaje {
+            margin: 10px 0;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mi-mensaje {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            border-radius: 18px 18px 4px 18px;
+        }
+
+        .otro-mensaje {
+            background: white;
+            color: #333;
+            margin-right: auto;
+            border-radius: 18px 18px 18px 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .mensaje b {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-destino {
+            margin-bottom: 10px;
+        }
+
+        .input-destino input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .input-mensaje {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-mensaje input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 15px;
+        }
+
+        .input-mensaje input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-mensaje button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .input-mensaje button:hover {
+            transform: scale(1.05);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="login">
+        <h1>Bienvenido al Chat</h1>
+        <input type="text" id="usuario" placeholder="Ingresa tu nombre">
+        <button onclick="login()">Entrar</button>
+    </div>
+
+    <div id="chat" style="display:none;">
+        <div class="header">
+            <h2>Chat</h2>
+            <span id="nombreUsuario"></span>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-box">
+                <h3>💬 Chat Grupal</h3>
+                <div id="mensajesGrupal" class="mensajes"></div>
+                <div class="input-area">
+                    <div class="input-mensaje">
+                        <input type="text" id="mensajeGrupal" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviarGrupal()">
+                        <button onclick="enviarGrupal()">Enviar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-box">
+                <h3>🔒 Chat Privado</h3>
+                <div id="mensajesPrivado" class="mensajes"></div>
+                <div class="input-area">
+                    <div class="input-destino">
+                        <input type="text" id="destino" placeholder="Nombre del destinatario">
+                    </div>
+                    <div class="input-mensaje">
+                        <input type="text" id="mensajePrivado" placeholder="Mensaje privado..." onkeypress="if(event.key==='Enter') enviarPrivado()">
+                        <button onclick="enviarPrivado()">Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let usuario = '';
+
+        async function login() {
+            usuario = document.getElementById('usuario').value;
+            if (!usuario) return;
+
+            await fetch('http://localhost:8080/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({usuario})
+            });
+
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('chat').style.display = 'block';
+            document.getElementById('nombreUsuario').textContent = usuario;
+
+            cargarMensajes();
+            setInterval(cargarMensajes, 2000);
+        }
+
+        async function enviarGrupal() {
+            const mensaje = document.getElementById('mensajeGrupal').value;
+            if (!mensaje) return;
+
+            await fetch('http://localhost:8080/mensaje', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({usuario, mensaje, tipo: 'grupal'})
+            });
+
+            document.getElementById('mensajeGrupal').value = '';
+            cargarMensajes();
+        }
+
+        async function enviarPrivado() {
+            const mensaje = document.getElementById('mensajePrivado').value;
+            const destino = document.getElementById('destino').value;
+            if (!mensaje || !destino) return;
+
+            await fetch('http://localhost:8080/mensaje', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({usuario, mensaje, tipo: 'privado', destino})
+            });
+
+            document.getElementById('mensajePrivado').value = '';
+            cargarMensajes();
+        }
+
+        async function cargarMensajes() {
+            const resGrupal = await fetch('http://localhost:8080/mensajes?tipo=grupal');
+            const grupal = await resGrupal.json();
+
+            const divGrupal = document.getElementById('mensajesGrupal');
+            divGrupal.innerHTML = '';
+            grupal.forEach(m => {
+                const clase = m.usuario === usuario ? 'mi-mensaje' : 'otro-mensaje';
+                divGrupal.innerHTML += `<div class="mensaje ${clase}"><b>${m.usuario}:</b> ${m.mensaje}</div>`;
+            });
+            divGrupal.scrollTop = divGrupal.scrollHeight;
+
+            const destino = document.getElementById('destino').value;
+            if (destino) {
+                const resPrivado = await fetch(`http://localhost:8080/mensajes?tipo=privado&usuario=${usuario}`);
+                const privado = await resPrivado.json();
+
+                const divPrivado = document.getElementById('mensajesPrivado');
+                divPrivado.innerHTML = '';
+                privado.forEach(m => {
+                    if (m.usuario === destino || m.destino === destino) {
+                        const clase = m.usuario === usuario ? 'mi-mensaje' : 'otro-mensaje';
+                        divPrivado.innerHTML += `<div class="mensaje ${clase}"><b>${m.usuario}:</b> ${m.mensaje}</div>`;
+                    }
+                });
+                divPrivado.scrollTop = divPrivado.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>

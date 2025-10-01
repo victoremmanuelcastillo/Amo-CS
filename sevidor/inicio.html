@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inicio</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <input type="text" id="usuario" placeholder="Nombre de usuario">
+    <button onclick="login()">Entrar</button>
+
+    <script>
+        function login() {
+            const usuario = document.getElementById('usuario').value;
+            if (usuario) {
+                localStorage.setItem('usuario', usuario);
+                fetch('/inicio', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({usuario: usuario})
+                }).then(() => {
+                    window.location.href = '/chat';
+                });
+            }
+        }
+    </script>
+</body>
+</html>

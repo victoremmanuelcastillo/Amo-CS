@@ -1,24 +1,35 @@
 const net = require('net');
 const readline = require('readline-sync');
-const server = {
-    port: 8080,
-    host: 'localhost'
-}
-const client = net.createConnection(server);
 
-function sendMessage() {
-    const message = readline.question('Escribe: ');
-    client.write(message);
-    sendMessage();
-}
+const client = net.createConnection({ port: 8080, host: 'localhost' });
+
+let usuario = '';
+let enChat = false;
 
 client.on('connect', () => {
-    console.log('Connected to server');
-    sendMessage();
-})
+    console.log('=== PANTALLA DE INICIO ===');
+    usuario = readline.question('Nombre de usuario: ');
+    client.write(`/inicio:${usuario}`);
+});
+
 client.on('data', (data) => {
-    console.log('Server says:', data.toString());
-})
+    const respuesta = data.toString().trim();
+
+    if (respuesta === 'OK' && !enChat) {
+        enChat = true;
+        console.log('\n=== CHAT ===');
+        enviarMensajes();
+    } else {
+        console.log(respuesta);
+    }
+});
+
+function enviarMensajes() {
+    const mensaje = readline.question('');
+    client.write(`/chat:${mensaje}`);
+    enviarMensajes();
+}
+
 client.on('error', (err) => {
     console.error('Connection error:', err);
-})
+});
