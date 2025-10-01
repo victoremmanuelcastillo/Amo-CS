@@ -1,4 +1,6 @@
 const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
 const admin = require('firebase-admin');
 const serviceAccount = require('../firebase-key.json');
 
@@ -8,6 +10,14 @@ admin.initializeApp({
 
 const db = admin.firestore();
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST']
+    }
+});
+
 app.use(express.json());
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -29,14 +39,18 @@ app.post('/login', async (req, res) => {
 
 app.post('/mensaje', async (req, res) => {
     const {usuario, mensaje, tipo, destino} = req.body;
-    await db.collection('mensajes').add({
+    const nuevoMensaje = {
         usuario: usuario,
         mensaje: mensaje,
         tipo: tipo,
         destino: destino || null,
         fecha: new Date()
-    });
+    };
+    await db.collection('mensajes').add(nuevoMensaje);
     console.log(`[${tipo}] ${usuario}: ${mensaje}`);
+
+    io.emit('nuevoMensaje', nuevoMensaje);
+
     res.json({ok: true});
 });
 
@@ -65,6 +79,13 @@ app.get('/mensajes', async (req, res) => {
     }
 });
 
-app.listen(8080, () => {
+io.on('connection', (socket) => {
+    console.log('Usuario conectado');
+    socket.on('disconnect', () => {
+        console.log('Usuario desconectado');
+    });
+});
+
+server.listen(8080, () => {
     console.log('Servidor API en http://localhost:8080');
 });
