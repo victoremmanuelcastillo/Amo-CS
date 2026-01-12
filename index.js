@@ -44,7 +44,7 @@ app.get("/usuario/ver", async (req, res) => {
       };
     });
 
-    res.json(usuarios); // Enviar array de usuarios como respuesta en JSON
+    res.json(usuarios);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -79,7 +79,7 @@ app.delete("/usuario/delete/:id", async (req, res) => {
   }
 });
 
-// ============ CRUD ALIMENTOS ============
+//ALIMENTOS
 
 // Crear alimento
 app.post("/alimento/add", async (req, res) => {
@@ -92,7 +92,7 @@ app.post("/alimento/add", async (req, res) => {
   }
 });
 
-// Obtener todos los alimentos
+// Obtener alimentos
 app.get("/alimento/ver", async (req, res) => {
   try {
     const items = await db.collection("alimentos").get();
@@ -138,8 +138,7 @@ app.delete("/alimento/delete/:id", async (req, res) => {
   }
 });
 
-// ============ CRUD PROVEEDORES ============
-
+//PROVEEDORES
 // Crear proveedor
 app.post("/proveedor/add", async (req, res) => {
   try {
@@ -151,7 +150,7 @@ app.post("/proveedor/add", async (req, res) => {
   }
 });
 
-// Obtener todos los proveedores
+// Obtener proveedores
 app.get("/proveedor/ver", async (req, res) => {
   try {
     const items = await db.collection("proveedores").get();
