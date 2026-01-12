@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicio Remoto de Chat IA</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; }
+        #chat-container { background-color: white; border-radius: 10px; box-shadow: 0 6px 12px rgba(0,0,0,0.15); padding: 25px; }
+        #output { border: 1px solid #ddd; background-color: #ffffff; height: 350px; overflow-y: scroll; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+        .user-msg, .ai-msg, .error-msg { margin: 10px 0; padding: 8px 12px; border-radius: 6px; max-width: 80%; }
+        .user-msg { background-color: #e6f7ff; margin-left: auto; text-align: right; }
+        .ai-msg { background-color: #d1e7dd; margin-right: auto; text-align: left; }
+        .error-msg { background-color: #f8d7da; color: #721c24; margin-right: auto; text-align: left; border: 1px solid #f5c6cb; }
+        .status-msg { font-size: 0.8em; color: #888; text-align: center; margin: 10px 0; }
+        input[type="text"] { padding: 12px; width: 75%; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; }
+        button { padding: 12px 15px; background-color: #007bff; color: white; cursor: pointer; border: none; border-radius: 6px; font-size: 16px; transition: background-color 0.3s; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🤖 Chatbot RMI con Mistral 7B</h1>
+    <p>Comunicación asíncrona: Petición por HTTP (RMI), Respuesta por WebSocket (Callback).</p>
+    
+    <div id="chat-container">
+        <div id="output"></div>
+        <input type="text" id="prompt-input" placeholder="Pregunta algo a Mistral 7B..." onkeypress="if(event.key === 'Enter') sendChatRequest()" disabled>
+        <button onclick="sendChatRequest()" id="send-btn" disabled>Enviar</button>
+        <div class="status-msg" id="status">Conectando a WebSocket...</div>
+    </div>
+
+    <script>
+        const API_URL = '/api/v1/chat';
+        const WS_URL = `ws://${window.location.host}`;
+        const SECRET_KEY = 'SecretoIA2025';
+
+        let clientId = null;
+        let ws;
+
+        const outputDiv = document.getElementById('output');
+        const statusDiv = document.getElementById('status');
+        const promptInput = document.getElementById('prompt-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        function toggleInput(enabled) {
+            promptInput.disabled = !enabled;
+            sendBtn.disabled = !enabled;
+            if (enabled) promptInput.focus();
+        }
+
+        function appendMessage(sender, text) {
+            const msgElement = document.createElement('div');
+            msgElement.classList.add(
+                sender === 'user' ? 'user-msg' : 
+                (sender === 'ai' ? 'ai-msg' : 'error-msg')
+            );
+            msgElement.innerHTML = text.replace(/\n/g, '<br>');
+            outputDiv.appendChild(msgElement);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+
+        // --- Conexión WebSocket para Callbacks ---
+        function initWebSocket() {
+            ws = new WebSocket(WS_URL);
+            toggleInput(false);
+
+            ws.onopen = () => {
+                statusDiv.textContent = '✅ Conexión WS establecida. Esperando ID...';
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'WS_ID_ASSIGNED') {
+                    clientId = data.id;
+                    statusDiv.textContent = `✅ WS Conectado. ID: ${clientId}. Listo para chatear.`;
+                    toggleInput(true);
+                } 
+                else if (data.type === 'CALLBACK_CHAT_SUCCESS') {
+                    appendMessage('ai', data.data);
+                    statusDiv.textContent = `✅ WS Conectado. ID: ${clientId}. Chat listo.`;
+                    toggleInput(true);
+                }
+                 else if (data.type === 'CALLBACK_CHAT_ERROR') {
+                    appendMessage('error', `⚠️ Error del Servidor (Callback): ${data.message}`);
+                    statusDiv.textContent = `❌ Error en IA. Chat listo.`;
+                    toggleInput(true);
+                }
+            };
+
+            ws.onclose = () => {
+                statusDiv.textContent = '❌ WS desconectado. Reintentando...';
+                toggleInput(false);
+                setTimeout(initWebSocket, 5000);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket Error:', error);
+                statusDiv.textContent = '❌ Error de WS.';
+            };
+        }
+
+        // --- Invocación Remota (POST/RMI) ---
+        async function sendChatRequest() {
+            const prompt = promptInput.value.trim();
+
+            if (!prompt || !clientId) {
+                alert('Espera a que la conexión esté lista o escribe un mensaje.');
+                return;
+            }
+
+            appendMessage('user', prompt); 
+            promptInput.value = '';
+            toggleInput(false);
+            statusDiv.textContent = '⏳ Enviando solicitud RMI... Esperando callback...';
+            
+            const payload = {
+                prompt: prompt,
+                wsClientId: clientId 
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SECRET_KEY}` 
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    alert(`Error Remoto (${response.status}): ${errorData.message}`);
+                    statusDiv.textContent = `❌ Error RPC: ${errorData.message}.`;
+                    toggleInput(true);
+                    return;
+                }
+
+                const data = await response.json();
+                statusDiv.textContent = `✅ Solicitud RPC aceptada (ID: ${data.requestId}). Esperando IA...`;
+
+            } catch (error) {
+                alert('Error de conexión o red. Revisa la consola.');
+                console.error('Fetch Error:', error);
+                statusDiv.textContent = '❌ Error de red. Intenta recargar.';
+                toggleInput(true);
+            }
+        }
+
+        window.onload = initWebSocket;
+    </script>
+</body>
+</html>
