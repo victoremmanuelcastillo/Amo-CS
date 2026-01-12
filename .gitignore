@@ -1,0 +1,14 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+#doc
+a.md
+DEPLOY_AZURE.md
+CONVERSACION_COMPLETA.md
